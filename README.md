@@ -274,4 +274,4 @@ For issues and questions:
 
 **Made with ❤️ for better healthcare accessibility**
 
-*This project is part of a health technology initiative to make AI-powered medical analysis more accessible to everyone.* 
+*This project is part of a health technology initiative to make AI-powered medical analysis more accessible to everyone.*
