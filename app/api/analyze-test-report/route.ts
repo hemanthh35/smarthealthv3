@@ -18,6 +18,9 @@ interface TestReport {
   recommendations: string[]
   severity: 'normal' | 'mild' | 'moderate' | 'severe'
   confidence: number
+  extracted_text?: string
+  total_tests?: number
+  abnormal_tests?: number
 }
 
 export async function POST(request: NextRequest) {
@@ -32,16 +35,64 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Simulate AI analysis - in a real implementation, this would use Ollama or another AI service
-    const analysis = await simulateTestReportAnalysis(file)
-
-    return NextResponse.json(analysis)
+    // Check if OCR processing is available
+    const useOCR = process.env.USE_OCR === 'true'
+    
+    if (useOCR) {
+      // Use OCR processing
+      const analysis = await processWithOCR(file)
+      return NextResponse.json(analysis)
+    } else {
+      // Use simulated analysis
+      const analysis = await simulateTestReportAnalysis(file)
+      return NextResponse.json(analysis)
+    }
   } catch (error) {
     console.error('Error analyzing test report:', error)
     return NextResponse.json(
       { error: 'Failed to analyze test report' },
       { status: 500 }
     )
+  }
+}
+
+async function processWithOCR(file: File): Promise<TestReport> {
+  try {
+    // Convert file to FormData for OCR API
+    const ocrFormData = new FormData()
+    ocrFormData.append('file', file)
+    
+    // Call OCR API (assuming it's running on port 8000)
+    const ocrResponse = await fetch('http://localhost:8000/analyze-report', {
+      method: 'POST',
+      body: ocrFormData,
+    })
+    
+    if (!ocrResponse.ok) {
+      throw new Error('OCR processing failed')
+    }
+    
+    const ocrResult = await ocrResponse.json()
+    
+    // Convert OCR result to TestReport format
+    return {
+      id: `ocr_${Date.now()}`,
+      name: file.name.replace(/\.[^/.]+$/, ''),
+      date: new Date().toISOString().split('T')[0],
+      type: 'OCR Analysis',
+      results: ocrResult.test_results || [],
+      analysis: ocrResult.analysis || 'OCR analysis completed',
+      recommendations: ocrResult.recommendations || [],
+      severity: ocrResult.severity || 'normal',
+      confidence: ocrResult.confidence || 0,
+      extracted_text: ocrResult.extracted_text_preview,
+      total_tests: ocrResult.total_tests_extracted,
+      abnormal_tests: ocrResult.abnormal_tests
+    }
+  } catch (error) {
+    console.error('OCR processing error:', error)
+    // Fallback to simulated analysis
+    return await simulateTestReportAnalysis(file)
   }
 }
 
