@@ -13,7 +13,8 @@ import {
   User,
   Settings,
   LogOut,
-  Brain
+  Brain,
+  FileText
 } from 'lucide-react'
 
 export default function Navigation() {
@@ -25,6 +26,7 @@ export default function Navigation() {
     { name: 'Dashboard', href: '/dashboard', icon: Activity },
     { name: 'Symptom Checker', href: '/app?tab=symptoms', icon: Brain },
     { name: 'Image Analysis', href: '/app?tab=image', icon: Camera },
+    { name: 'Test Reports', href: '/test-reports', icon: FileText },
     { name: 'Find Hospitals', href: '/hospitals', icon: MapPin },
   ]
 

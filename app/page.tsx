@@ -79,6 +79,13 @@ export default function RootPage() {
                 </Link>
                 <span className="text-gray-400">|</span>
                 <Link 
+                  href="/test-reports" 
+                  className="text-primary-600 hover:text-primary-700 font-semibold transition-colors"
+                >
+                  Test Reports
+                </Link>
+                <span className="text-gray-400">|</span>
+                <Link 
                   href="/hospitals" 
                   className="text-primary-600 hover:text-primary-700 font-semibold transition-colors"
                 >
