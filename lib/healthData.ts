@@ -9,11 +9,11 @@ import {
 } from './types'
 
 // Local storage keys
-const STORAGE_KEYS = {
-  ANALYSES: 'healthai_analyses',
-  REMINDERS: 'healthai_reminders',
-  USER_PROFILE: 'healthai_user_profile',
-  INSIGHTS: 'healthai_insights'
+export const STORAGE_KEYS = {
+  ANALYSES: 'smarthealth_analyses',
+  REMINDERS: 'smarthealth_reminders',
+  USER_PROFILE: 'smarthealth_user_profile',
+  INSIGHTS: 'smarthealth_insights'
 }
 
 // Initialize default user profile

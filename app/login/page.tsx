@@ -56,8 +56,8 @@ export default function LoginPage() {
                 <Heart className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">HealthAI</h1>
-                <p className="text-sm text-blue-200">Smart Health Assistant</p>
+                <h1 className="text-xl font-bold text-white">SmartHealth</h1>
+                <p className="text-sm text-blue-200">SmartHealth Assistant</p>
               </div>
             </Link>
             
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 <Lock className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-              <p className="text-blue-200">Sign in to your HealthAI account</p>
+              <p className="text-blue-200">Sign in to your SmartHealth account</p>
             </div>
 
             {/* Login Form */}

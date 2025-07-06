@@ -232,7 +232,7 @@ export default function ImageAnalyzer() {
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="w-full h-64 object-cover rounded-lg border border-gray-200"
+                    className="w-full h-64 object-contain rounded-lg border border-gray-200 bg-gray-50"
                   />
                   <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
                     {selectedImage?.name}
@@ -313,7 +313,7 @@ export default function ImageAnalyzer() {
                   <img
                     src={imagePreview}
                     alt="Analyzed"
-                    className="w-full h-64 object-cover rounded-lg border border-gray-200"
+                    className="w-full h-64 object-contain rounded-lg border border-gray-200 bg-gray-50"
                   />
                   <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
                     {selectedAnalysisType} Analysis

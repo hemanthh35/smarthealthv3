@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-lg font-semibold mb-4">HealthAI</h3>
+            <h3 className="text-lg font-semibold mb-4">SmartHealth</h3>
             <p className="text-gray-300 text-sm">
               AI-powered health assessment tool designed to help you understand your symptoms and make informed health decisions.
             </p>
@@ -30,7 +30,7 @@ export default function Footer() {
         
         <div className="border-t border-gray-700 mt-8 pt-6 text-center">
           <p className="text-gray-400 text-sm">
-            © 2024 HealthAI. All rights reserved. | Privacy Policy | Terms of Service
+            © 2024 SmartHealth. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>

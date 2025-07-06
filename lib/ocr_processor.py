@@ -1,6 +1,7 @@
 """
-OCR Processor for Medical Test Reports
-Extracts text from scanned PDFs and images using Tesseract OCR
+Enhanced OCR Processor for Medical Test Reports
+Extracts full text from scanned PDFs and images using Tesseract OCR
+Then processes with LLaVA for text refinement and analysis
 """
 
 import pytesseract
@@ -9,272 +10,185 @@ import io
 import base64
 from pdf2image import convert_from_bytes
 import re
-from typing import List, Dict, Optional
-from .test_reference_data import get_test_reference, analyze_test_value
+import json
+import requests
+from typing import Dict, Optional
 
-# Configure Tesseract path for Windows (adjust as needed)
-try:
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-except:
-    pass  # Use system default
+# Configure Tesseract path for Windows
+import os
+tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+if os.path.exists(tesseract_path):
+    pytesseract.pytesseract.tesseract_cmd = tesseract_path
 
 class OCRProcessor:
     def __init__(self):
-        self.extracted_text = ""
-        self.test_results = []
+        self.tesseract_available = self._check_tesseract()
+        self.ollama_url = "http://localhost:11434"
+        
+    def _check_tesseract(self) -> bool:
+        """Check if Tesseract is available"""
+        try:
+            pytesseract.get_tesseract_version()
+            return True
+        except Exception:
+            return False
+    
+    def clean_ocr_text(self, text: str) -> str:
+        """Clean and refine OCR extracted text"""
+        if not text:
+            return ""
+        
+        # Remove excessive whitespace and normalize
+        text = re.sub(r'\s+', ' ', text.strip())
+        
+        # Fix common OCR errors
+        text = re.sub(r'[|]', 'I', text)  # Fix vertical bars to I
+        text = re.sub(r'[0]', 'O', text)  # Fix 0 to O in text contexts
+        text = re.sub(r'[1]', 'l', text)  # Fix 1 to l in text contexts
+        
+        # Remove noise characters
+        text = re.sub(r'[^\w\s\.\,\:\;\-\+\=\/\(\)\[\]\{\}\%\@\#\$\*\!\?\'\"]', '', text)
+        
+        # Fix spacing around punctuation
+        text = re.sub(r'\s+([\.\,\:\;\-\+\=\/\(\)\[\]\{\}\%\@\#\$\*\!\?])\s*', r'\1', text)
+        
+        # Fix common medical abbreviations
+        medical_fixes = {
+            'Hgb': 'Hemoglobin',
+            'Hct': 'Hematocrit',
+            'WBC': 'White Blood Cells',
+            'RBC': 'Red Blood Cells',
+            'Plt': 'Platelets',
+            'HDL': 'HDL Cholesterol',
+            'LDL': 'LDL Cholesterol',
+            'Trig': 'Triglycerides',
+            'Chol': 'Total Cholesterol',
+            'Glu': 'Glucose',
+            'Creat': 'Creatinine',
+            'Na': 'Sodium',
+            'K': 'Potassium',
+            'Cl': 'Chloride',
+            'Ca': 'Calcium',
+            'ALT': 'ALT',
+            'AST': 'AST',
+            'ALP': 'Alkaline Phosphatase',
+            'Bil': 'Total Bilirubin',
+            'Alb': 'Albumin',
+            'CRP': 'C-Reactive Protein',
+            'ESR': 'ESR',
+            'Trop': 'Troponin',
+            'BNP': 'BNP'
+        }
+        
+        for abbr, full_name in medical_fixes.items():
+            text = re.sub(rf'\b{abbr}\b', full_name, text, flags=re.IGNORECASE)
+        
+        return text.strip()
         
     def process_pdf(self, pdf_bytes: bytes) -> str:
-        """Extract text from PDF using OCR"""
+        """Extract full text from PDF using OCR with enhanced processing"""
+        if not self.tesseract_available:
+            raise Exception("Tesseract OCR is not installed")
+            
         try:
-            print("📄 Converting PDF pages to images...")
             images = convert_from_bytes(pdf_bytes)
             full_text = ""
             
             for i, img in enumerate(images):
-                print(f"🔍 OCR on page {i + 1}...")
-                text = pytesseract.image_to_string(img)
+                # Use enhanced OCR configuration for medical documents
+                custom_config = '--oem 3 --psm 6'
+                text = pytesseract.image_to_string(img, config=custom_config)
                 full_text += text + "\n"
             
-            self.extracted_text = full_text
-            return full_text
+            # Clean and refine the extracted text
+            cleaned_text = self.clean_ocr_text(full_text)
+            return cleaned_text
             
         except Exception as e:
-            print(f"❌ Error processing PDF: {e}")
-            raise
+            raise Exception(f"PDF processing failed: {str(e)}")
     
     def process_image(self, image_bytes: bytes) -> str:
-        """Extract text from image using OCR"""
+        """Extract full text from image using OCR with enhanced processing"""
+        if not self.tesseract_available:
+            raise Exception("Tesseract OCR is not installed")
+            
         try:
-            print("🔍 Processing image with OCR...")
             image = Image.open(io.BytesIO(image_bytes))
-            text = pytesseract.image_to_string(image)
             
-            self.extracted_text = text
-            return text
+            # Use enhanced OCR configuration for medical documents
+            custom_config = '--oem 3 --psm 6'
+            text = pytesseract.image_to_string(image, config=custom_config)
+            
+            # Clean and refine the extracted text
+            cleaned_text = self.clean_ocr_text(text)
+            return cleaned_text
             
         except Exception as e:
-            print(f"❌ Error processing image: {e}")
-            raise
+            raise Exception(f"Image processing failed: {str(e)}")
     
-    def extract_test_values(self, text: str = None) -> List[Dict]:
-        """Extract test values from OCR text"""
-        if text is None:
-            text = self.extracted_text
-            
-        if not text:
-            return []
-        
-        # Common patterns for test results
-        patterns = [
-            # Pattern: Test Name: Value Unit (Reference Range)
-            r'([A-Za-z\s]+):\s*([\d\.]+)\s*([A-Za-z\/%]+)\s*\(([\d\.\-\<\>]+)\)',
-            # Pattern: Test Name Value Unit Reference
-            r'([A-Za-z\s]+)\s+([\d\.]+)\s+([A-Za-z\/%]+)\s+([\d\.\-\<\>]+)',
-            # Pattern: Test Name = Value Unit
-            r'([A-Za-z\s]+)\s*=\s*([\d\.]+)\s*([A-Za-z\/%]+)',
-            # Pattern: Test Name Value Unit
-            r'([A-Za-z\s]+)\s+([\d\.]+)\s+([A-Za-z\/%]+)',
-        ]
-        
-        extracted_tests = []
-        
-        for pattern in patterns:
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            for match in matches:
-                test_name = match[0].strip()
-                value_str = match[1].strip()
-                unit = match[2].strip()
-                reference = match[3].strip() if len(match) > 3 else ""
-                
-                # Clean up test name
-                test_name = self.clean_test_name(test_name)
-                
-                # Try to parse value
-                try:
-                    value = float(value_str)
-                except ValueError:
-                    continue
-                
-                # Analyze the test value
-                analysis = analyze_test_value(test_name, value, unit)
-                if analysis:
-                    extracted_tests.append({
-                        "parameter": analysis["test_name"],
-                        "value": str(value),
-                        "unit": analysis["unit"],
-                        "reference": reference or analysis["normal_range"],
-                        "status": analysis["status"],
-                        "category": analysis["category"]
-                    })
-        
-        self.test_results = extracted_tests
-        return extracted_tests
-    
-    def clean_test_name(self, name: str) -> str:
-        """Clean and normalize test name"""
-        # Remove common prefixes/suffixes
-        name = re.sub(r'^(test|lab|result|value):?\s*', '', name, flags=re.IGNORECASE)
-        name = re.sub(r'\s*[:=]\s*$', '', name)
-        
-        # Normalize common abbreviations
-        name_mappings = {
-            'hgb': 'hemoglobin',
-            'hct': 'hematocrit',
-            'wbc': 'white_blood_cells',
-            'rbc': 'red_blood_cells',
-            'plt': 'platelets',
-            'hdl': 'hdl_cholesterol',
-            'ldl': 'ldl_cholesterol',
-            'trig': 'triglycerides',
-            'chol': 'total_cholesterol',
-            'glu': 'glucose',
-            'creat': 'creatinine',
-            'na': 'sodium',
-            'k': 'potassium',
-            'cl': 'chloride',
-            'ca': 'calcium',
-            'alt': 'alt',
-            'ast': 'ast',
-            'alp': 'alkaline_phosphatase',
-            'bil': 'total_bilirubin',
-            'alb': 'albumin',
-            'crp': 'c_reactive_protein',
-            'esr': 'esr',
-            'trop': 'troponin',
-            'bnp': 'bnp'
-        }
-        
-        normalized = name.lower().replace(" ", "_").replace("-", "_")
-        
-        for abbr, full_name in name_mappings.items():
-            if abbr in normalized:
-                return full_name
-        
-        return normalized
-    
-    def generate_analysis_summary(self) -> Dict:
-        """Generate analysis summary from extracted test results"""
-        if not self.test_results:
-            return {
-                "analysis": "No test results were extracted from the document.",
-                "recommendations": ["Please ensure the document is clearly scanned and contains readable test values."],
-                "severity": "normal",
-                "confidence": 0
-            }
-        
-        # Count abnormal results
-        abnormal_count = sum(1 for test in self.test_results if test["status"] != "normal")
-        total_count = len(self.test_results)
-        
-        # Determine severity
-        if abnormal_count == 0:
-            severity = "normal"
-            analysis = "All test results are within normal ranges. Your health markers appear to be in good condition."
-        elif abnormal_count <= 2:
-            severity = "mild"
-            analysis = f"Most test results are normal with {abnormal_count} slightly elevated values. This may indicate minor health considerations."
-        elif abnormal_count <= 4:
-            severity = "moderate"
-            analysis = f"Several test results ({abnormal_count} out of {total_count}) are outside normal ranges. This suggests the need for medical attention."
-        else:
-            severity = "severe"
-            analysis = f"Multiple test results ({abnormal_count} out of {total_count}) are significantly abnormal. Immediate medical consultation is recommended."
-        
-        # Generate recommendations
-        recommendations = self.generate_recommendations(severity, self.test_results)
-        
-        # Calculate confidence based on extraction quality
-        confidence = min(95, max(60, 100 - (abnormal_count * 5)))
-        
-        return {
-            "analysis": analysis,
-            "recommendations": recommendations,
-            "severity": severity,
-            "confidence": confidence
-        }
-    
-    def generate_recommendations(self, severity: str, test_results: List[Dict]) -> List[str]:
-        """Generate health recommendations based on test results"""
-        recommendations = []
-        
-        if severity == "normal":
-            recommendations.extend([
-                "Continue with regular health monitoring",
-                "Maintain a balanced diet and exercise routine",
-                "Schedule annual physical examination",
-                "Keep up with preventive health measures"
-            ])
-        elif severity == "mild":
-            recommendations.extend([
-                "Monitor the elevated values over time",
-                "Consider lifestyle modifications",
-                "Schedule follow-up testing in 3-6 months",
-                "Consult with healthcare provider for guidance"
-            ])
-        elif severity == "moderate":
-            recommendations.extend([
-                "Schedule appointment with healthcare provider",
-                "Consider dietary and lifestyle changes",
-                "Monitor symptoms and report any changes",
-                "Follow up with recommended testing"
-            ])
-        else:  # severe
-            recommendations.extend([
-                "Seek immediate medical attention",
-                "Contact healthcare provider urgently",
-                "Follow all medical recommendations strictly",
-                "Monitor for any worsening symptoms"
-            ])
-        
-        # Add specific recommendations based on test categories
-        categories = set(test["category"] for test in test_results)
-        
-        if "Lipid Panel" in categories:
-            recommendations.append("Consider heart-healthy diet and exercise")
-        if "Thyroid" in categories:
-            recommendations.append("Monitor energy levels and weight changes")
-        if "Liver" in categories:
-            recommendations.append("Avoid alcohol and monitor liver function")
-        if "Kidney" in categories:
-            recommendations.append("Stay hydrated and monitor kidney function")
-        
-        return recommendations[:6]  # Limit to 6 recommendations
-    
-    def process_document(self, file_bytes: bytes, file_type: str) -> Dict:
-        """Complete document processing pipeline"""
+    def process_with_llava(self, extracted_text: str) -> str:
+        """Process extracted text with LLaVA for refinement and analysis, return only cleaned text"""
         try:
-            # Extract text using OCR
-            if file_type.lower() == "pdf":
-                text = self.process_pdf(file_bytes)
+            # Check if Ollama is running
+            try:
+                test_response = requests.get(f"{self.ollama_url}/api/tags", timeout=5)
+                if test_response.status_code != 200:
+                    raise Exception("Ollama not responding")
+            except Exception:
+                # If Ollama is not available, return just OCR text
+                return extracted_text
+            
+            # Prepare enhanced prompt for LLaVA
+            prompt = f"""
+You are a medical document analysis expert. Clean and correct the following OCR-extracted text from a medical test report. Fix OCR errors, improve readability, and output only the cleaned, corrected, and well-formatted text. Do not return any JSON or structured data, just the cleaned text.
+
+Extracted OCR text:
+{extracted_text}
+"""
+            
+            # Call LLaVA via Ollama with increased timeout
+            response = requests.post(
+                f"{self.ollama_url}/api/generate",
+                json={
+                    "model": "llava",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.1,
+                        "top_p": 0.9,
+                        "num_predict": 2048
+                    }
+                },
+                timeout=180  # Increased timeout to 3 minutes
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                llava_response = result.get('response', '')
+                # Return the response as plain text (strip markdown if present)
+                cleaned = llava_response.strip()
+                # Remove markdown code block if present
+                if cleaned.startswith('```'):
+                    cleaned = cleaned.strip('`').strip()
+                return cleaned
             else:
-                text = self.process_image(file_bytes)
-            
-            # Extract test values
-            test_results = self.extract_test_values(text)
-            
-            # Generate analysis
-            analysis_summary = self.generate_analysis_summary()
-            
-            return {
-                "success": True,
-                "extracted_text": text[:1000] + "..." if len(text) > 1000 else text,
-                "test_results": test_results,
-                "analysis": analysis_summary["analysis"],
-                "recommendations": analysis_summary["recommendations"],
-                "severity": analysis_summary["severity"],
-                "confidence": analysis_summary["confidence"],
-                "total_tests": len(test_results),
-                "abnormal_tests": sum(1 for test in test_results if test["status"] != "normal")
-            }
-            
+                return extracted_text
+        except Exception:
+            return extracted_text
+
+    def process_document(self, file_bytes: bytes, file_type: str) -> str:
+        """Complete document processing pipeline: Enhanced OCR + LLaVA, returns only cleaned text"""
+        try:
+            # Check if Tesseract is available
+            if not self.tesseract_available:
+                return "Tesseract OCR is not installed."
+            # Extract text using enhanced OCR
+            if file_type.lower() == "pdf":
+                extracted_text = self.process_pdf(file_bytes)
+            else:
+                extracted_text = self.process_image(file_bytes)
+            # Process with enhanced LLaVA, return only cleaned text
+            cleaned_text = self.process_with_llava(extracted_text)
+            return cleaned_text
         except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "extracted_text": "",
-                "test_results": [],
-                "analysis": "Failed to process document",
-                "recommendations": ["Please ensure the document is clearly scanned and try again."],
-                "severity": "normal",
-                "confidence": 0
-            } 
+            return f"Error: {str(e)}" 

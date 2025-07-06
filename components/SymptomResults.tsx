@@ -1,7 +1,7 @@
 'use client'
 
 import { CheckCircle, AlertTriangle, Info, ArrowLeft, TrendingUp, Clock, Shield } from 'lucide-react'
-import { ConditionResult } from '@/types/health'
+import { ConditionResult, symptomCategories } from '@/types/health'
 
 interface SymptomResultsProps {
   results: ConditionResult[]
@@ -50,14 +50,26 @@ export default function SymptomResults({ results, selectedSymptoms, onReset }: S
         <div className="bg-blue-50 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-900 mb-2">Your Symptoms</h3>
           <div className="flex flex-wrap gap-2">
-            {selectedSymptoms.map((symptomId, index) => (
-              <span
-                key={symptomId}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
-              >
-                Symptom {index + 1}
-              </span>
-            ))}
+            {selectedSymptoms.map((symptomId) => {
+              const symptom = symptomCategories
+                .flatMap(cat => cat.symptoms)
+                .find(s => s.id === symptomId)
+              return symptom ? (
+                <span
+                  key={symptomId}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                >
+                  {symptom.name}
+                </span>
+              ) : (
+                <span
+                  key={symptomId}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                >
+                  {symptomId}
+                </span>
+              )
+            })}
           </div>
         </div>
       </div>

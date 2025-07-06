@@ -6,7 +6,7 @@ import Navigation from '@/components/Navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'HealthAI - Smart Health Assistant',
+  title: 'SmartHealth - SmartHealth Assistant',
   description: 'AI-powered health symptoms assessment and image analysis tool',
 }
 

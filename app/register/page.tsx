@@ -71,8 +71,8 @@ export default function RegisterPage() {
                 <Heart className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">HealthAI</h1>
-                <p className="text-sm text-blue-200">Smart Health Assistant</p>
+                <h1 className="text-xl font-bold text-white">SmartHealth</h1>
+                <p className="text-sm text-blue-200">SmartHealth Assistant</p>
               </div>
             </Link>
             
@@ -94,7 +94,7 @@ export default function RegisterPage() {
                 <User className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-              <p className="text-blue-200">Join HealthAI for personalized health insights</p>
+              <p className="text-blue-200">Join SmartHealth for personalized health insights</p>
             </div>
 
             {/* Registration Form */}

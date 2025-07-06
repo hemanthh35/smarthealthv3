@@ -15,15 +15,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib'))
 
 try:
     from ocr_processor import OCRProcessor
-    from test_reference_data import get_all_test_names
 except ImportError as e:
     print(f"Import error: {e}")
     # Fallback for development
     OCRProcessor = None
-    get_all_test_names = lambda: []
 
 app = FastAPI(
-    title="Health AI OCR Analyzer",
+    title="SmartHealth OCR Analyzer",
     description="OCR-powered medical test report analyzer",
     version="1.0.0"
 )
@@ -35,7 +33,7 @@ ocr_processor = OCRProcessor() if OCRProcessor else None
 async def root():
     """Health check endpoint"""
     return {
-        "message": "Health AI OCR Analyzer",
+        "message": "SmartHealth OCR Analyzer",
         "status": "running",
         "version": "1.0.0"
     }
@@ -44,10 +42,18 @@ async def root():
 async def get_supported_tests():
     """Get list of supported test types"""
     try:
-        test_names = get_all_test_names()
+        # Return basic test types since we removed the reference data import
+        basic_tests = [
+            "Hemoglobin", "Hematocrit", "White Blood Cells", "Red Blood Cells",
+            "Platelets", "HDL Cholesterol", "LDL Cholesterol", "Triglycerides",
+            "Total Cholesterol", "Glucose", "Creatinine", "Sodium", "Potassium",
+            "Chloride", "Calcium", "ALT", "AST", "Alkaline Phosphatase",
+            "Total Bilirubin", "Albumin", "C-Reactive Protein", "ESR",
+            "Troponin", "BNP"
+        ]
         return {
-            "supported_tests": test_names,
-            "total_tests": len(test_names)
+            "supported_tests": basic_tests,
+            "total_tests": len(basic_tests)
         }
     except Exception as e:
         return {
@@ -112,14 +118,8 @@ async def analyze_medical_report(file: UploadFile = File(...)):
             "success": True,
             "filename": file.filename,
             "file_type": file_type,
-            "total_tests_extracted": result["total_tests"],
-            "abnormal_tests": result["abnormal_tests"],
-            "severity": result["severity"],
-            "confidence": result["confidence"],
-            "analysis": result["analysis"],
-            "recommendations": result["recommendations"],
-            "test_results": result["test_results"],
-            "extracted_text_preview": result["extracted_text"][:500] + "..." if len(result["extracted_text"]) > 500 else result["extracted_text"]
+            "analysis": result.get("llava_analysis", {}),
+            "extracted_text_preview": result.get("extracted_text", "")[:500] + "..." if len(result.get("extracted_text", "")) > 500 else result.get("extracted_text", "")
         }
         
         return JSONResponse(content=response)
@@ -173,7 +173,6 @@ async def health_check():
     return {
         "status": "healthy",
         "ocr_available": ocr_processor is not None,
-        "supported_tests_count": len(get_all_test_names()) if get_all_test_names else 0,
         "version": "1.0.0"
     }
 

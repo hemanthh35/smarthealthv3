@@ -61,7 +61,7 @@ export default function HomePage() {
               
               <h1 className="text-6xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
                 Your Personal
-                <span className="text-primary-600"> Health AI</span>
+                <span className="text-primary-600"> SmartHealth</span>
                 <br />
                 <span className="text-purple-600">Assistant</span>
               </h1>
@@ -174,12 +174,12 @@ export default function HomePage() {
               Ready to Experience the Future?
             </h2>
             <p className="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-              Join thousands of users who trust our AI-powered health assistant for accurate, 
+              Join thousands of users who trust our AI-powered SmartHealth assistant for accurate, 
               private, and instant health insights.
             </p>
             <Link href="/app" className="group bg-primary-600 text-white text-2xl px-12 py-6 rounded-lg font-bold hover:bg-primary-700 transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-3 shadow-lg">
               <Sparkles className="w-6 h-6" />
-              <span>Launch Health Assistant</span>
+              <span>Launch SmartHealth Assistant</span>
               <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
             </Link>
           </div>

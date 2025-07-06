@@ -1,7 +1,7 @@
 {
-  "name": "smart-symptoms-checker",
+  "name": "smarthealth",
   "version": "1.0.0",
-  "description": "AI-powered symptoms checker for health assessment",
+  "description": "AI-powered SmartHealth symptoms checker and medical image analyzer",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",

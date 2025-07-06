@@ -1,8 +1,8 @@
-# 🏥 Health AI - Smart Symptoms Checker & Medical Image Analyzer
+# 🏥 SmartHealth - Smart Symptoms Checker & Medical Image Analyzer
 
 A comprehensive health analysis web application powered by AI that analyzes symptoms, medical images, and helps users find nearby healthcare facilities. Built with Next.js, TypeScript, and Ollama LLaVA for advanced medical image analysis.
 
-![Health AI Dashboard](https://img.shields.io/badge/Next.js-14.2.30-black?style=for-the-badge&logo=next.js)
+![SmartHealth Dashboard](https://img.shields.io/badge/Next.js-14.2.30-black?style=for-the-badge&logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3-38B2AC?style=for-the-badge&logo=tailwind-css)
 ![Ollama](https://img.shields.io/badge/Ollama-LLaVA-FF6B6B?style=for-the-badge)
@@ -14,11 +14,14 @@ A comprehensive health analysis web application powered by AI that analyzes symp
 ## ✨ Features
 
 ### 🔍 **AI-Powered Symptom Analysis**
-- **Advanced Language Model Integration**: Uses state-of-the-art AI models for symptom analysis
+- **LLaVA-Powered Analysis**: Real AI analysis using Ollama LLaVA model
+- **Intelligent Condition Detection**: Automatically identifies common conditions from symptoms
 - **Personalized Health Recommendations**: Tailored advice based on symptom patterns
 - **Confidence Scoring**: AI provides confidence levels for each analysis
 - **Severity Assessment**: Automatic severity classification (mild/moderate/severe)
 - **Actionable Insights**: Clear guidance on when to seek medical attention
+- **Fast Processing**: Optimized for quick responses (20-second timeout)
+- **Fallback System**: Intelligent analysis even when JSON parsing fails
 
 ### 🖼️ **Medical Image Analysis**
 - **X-ray Analysis**: Bone structure, fractures, and skeletal abnormalities detection
@@ -42,11 +45,24 @@ A comprehensive health analysis web application powered by AI that analyzes symp
 - **Health Insights**: AI-generated health recommendations
 - **Trend Analysis**: Long-term health pattern recognition
 
+### 📋 **Test Report Analysis**
+- **LLaVA-Powered Document Processing**: Direct AI analysis of medical test reports using LLaVA model
+- **Simple Text Output**: Clean, readable analysis without complex JSON formatting
+- **Dual Analysis Modes**: Fast analysis (60s) and detailed analysis (120s) with optimized timeouts
+- **Intelligent Test Value Recognition**: Automatically identify and analyze test results with high accuracy
+- **Medical Reference Database**: Compare results against standard reference ranges
+- **Comprehensive Analysis**: Detailed interpretation of test values and trends
+- **Actionable Recommendations**: Personalized health advice based on results
+- **Multi-Format Support**: Process PDFs and images (JPEG, PNG)
+- **Real-time Processing**: Optimized for faster response times
+- **OCR Backup Available**: Original OCR functionality preserved for fallback use
+
 ## 🛠️ Technology Stack
 
 - **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS, Headless UI
 - **AI/ML**: Ollama LLaVA for image analysis
+- **OCR**: Tesseract OCR for document processing (backup)
 - **Maps**: Leaflet.js with OpenStreetMap
 - **Data Management**: Local Storage with compression
 - **Icons**: Lucide React
@@ -60,6 +76,7 @@ Before running this application, ensure you have:
 - **npm** or **yarn**
 - **Ollama** installed and running locally
 - **LLaVA model** installed in Ollama
+- **Tesseract OCR** installed for document processing (Windows: https://github.com/UB-Mannheim/tesseract/wiki)
 
 ## 🚀 Installation
 
@@ -95,7 +112,13 @@ npm run dev
 yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
+Open [http://localhost:3000](http://localhost:3000) (or 3001/3002 if port 3000 is busy) in your browser to see the application.
+
+### 5. Verify OCR Installation (Optional)
+```bash
+# Test Tesseract OCR functionality
+python -c "import pytesseract; print('Tesseract version:', pytesseract.get_tesseract_version())"
+```
 
 ## 🎯 Usage Guide
 
@@ -112,6 +135,14 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the a
 3. Select the analysis type (X-ray, Brain Tumor, Bone Fracture)
 4. Wait for Ollama LLaVA to process the image
 5. Review detailed analysis results and recommendations
+
+### Test Report Analysis
+1. Navigate to the **Test Report Analysis** tab
+2. Upload a scanned medical report (PDF or image)
+3. Choose between Fast Analysis (60s) or Detailed Analysis (120s)
+4. Wait for LLaVA to process and analyze the document
+5. Review the simple text analysis output
+6. Get personalized health recommendations based on results
 
 ### Healthcare Facility Finder
 1. Visit the **Find Hospitals** page
@@ -137,7 +168,7 @@ OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=llava
 
 # Application Settings
-NEXT_PUBLIC_APP_NAME=Health AI
+NEXT_PUBLIC_APP_NAME=SmartHealth
 NEXT_PUBLIC_APP_VERSION=1.0.0
 ```
 
@@ -159,13 +190,17 @@ smarthealthv3/
 ├── app/                    # Next.js App Router
 │   ├── dashboard/         # Health dashboard page
 │   ├── hospitals/         # Facility finder page
-│   ├── app/              # Main app with tabs
+│   ├── test-reports/      # Test report analysis page
 │   ├── api/              # API routes
+│   │   ├── analyze-test-report/      # Detailed analysis API
+│   │   ├── analyze-test-report-fast/ # Fast analysis API
+│   │   └── test-ollama/             # Ollama connection test
 │   └── globals.css       # Global styles
 ├── components/            # Reusable React components
 │   ├── NavigationBar.tsx # Main navigation
 │   ├── SymptomChecker.tsx
 │   ├── ImageAnalyzer.tsx
+│   ├── TestReportAnalyzer.tsx
 │   └── HealthcareFinder.tsx
 ├── lib/                  # Utility libraries
 │   ├── healthData.ts     # Health data management
@@ -180,12 +215,14 @@ smarthealthv3/
 ```bash
 # Test API endpoint
 curl http://localhost:3000/api/test-ollama
+# or if running on different port:
+curl http://localhost:3001/api/test-ollama
 ```
 
 ### Run Development Tests
 ```bash
 npm run dev
-# Navigate to http://localhost:3000
+# Navigate to http://localhost:3000 (or 3001/3002)
 # Test all features manually
 ```
 
@@ -225,13 +262,24 @@ This application is for educational and informational purposes only. It is not a
 - Image analysis is processed locally via Ollama
 
 ### System Requirements
+- **RAM**: 8GB+ (16GB recommended for LLaVA)
+- **Storage**: 5GB+ free space for models
+- **Network**: Stable internet for initial model download
+- **OS**: Windows 10/11 with PowerShell
 - Modern web browser with JavaScript enabled
 - Stable internet connection for map services
-- Sufficient RAM for Ollama LLaVA model (8GB+ recommended)
 
 ## 🆘 Troubleshooting
 
 ### Common Issues
+
+**PowerShell Command Syntax**
+```powershell
+# Instead of: cd /c/Users/naduk/OneDrive/Desktop/tejasexpo/you && npm run dev
+# Use:
+cd C:\Users\naduk\OneDrive\Desktop\tejasexpo\you
+npm run dev
+```
 
 **Ollama Connection Error**
 ```bash
@@ -243,17 +291,76 @@ ollama list
 
 # Install LLaVA if missing
 ollama pull llava
+
+# Test connection
+curl http://localhost:11434/api/tags
+```
+
+**API Timeout Issues**
+- Fast Analysis: 60-second timeout optimized for speed
+- Detailed Analysis: 120-second timeout for comprehensive results
+- Reduced response length parameters for faster processing
+- Optimized model parameters (temperature, top_k, top_p, repeat_penalty)
+
+**Development Server Issues**
+```bash
+# Check if server is running
+netstat -an | findstr :3001
+
+# Restart development server
+npm run dev
 ```
 
 **Image Analysis Not Working**
 - Verify Ollama is running on `http://localhost:11434`
 - Check that LLaVA model is installed
 - Ensure uploaded images are in supported formats (JPEG, PNG)
+- Try with smaller image files (< 10MB)
 
 **Map Not Loading**
 - Check internet connection
 - Verify browser location permissions
 - Clear browser cache if needed
+
+### Quick Fix Steps
+
+1. **Restart Everything**:
+   ```powershell
+   # Stop all processes
+   taskkill /f /im node.exe
+   taskkill /f /im ollama.exe
+   
+   # Start Ollama
+   ollama serve
+   
+   # Start development server
+   cd C:\Users\naduk\OneDrive\Desktop\tejasexpo\you
+   npm run dev
+   ```
+
+2. **Test Connection**:
+   - Open browser to http://localhost:3001 (or 3002)
+   - Go to Test Report Analysis page
+   - Upload a simple test image
+   - Try both Fast and Detailed analysis modes
+
+3. **Check Logs**:
+   - Monitor terminal output for errors
+   - Check browser console for JavaScript errors
+   - Look for timeout or connection errors
+
+### Expected Behavior
+
+**Working System:**
+- Ollama responds within 30-60 seconds for fast analysis
+- Ollama responds within 60-120 seconds for detailed analysis
+- Simple text output without JSON formatting
+- Purple-themed UI with clear error messages
+
+**Error Indicators:**
+- "LLaVA processing error" - Ollama not running
+- "Analysis timed out" - Model taking too long
+- "Failed to analyze test report" - API connection issues
 
 ## 📞 Support
 
@@ -261,6 +368,7 @@ For issues and questions:
 - Create an issue on GitHub
 - Check the troubleshooting section above
 - Ensure all prerequisites are met
+- Refer to `TROUBLESHOOTING.md` for detailed solutions
 
 ## 🙏 Acknowledgments
 
@@ -275,3 +383,5 @@ For issues and questions:
 **Made with ❤️ for better healthcare accessibility**
 
 *This project is part of a health technology initiative to make AI-powered medical analysis more accessible to everyone.*
+
+**SmartHealth v3.0 - Optimized for Performance and Reliability** 🚀

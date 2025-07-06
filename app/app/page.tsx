@@ -28,7 +28,7 @@ export default function AppPage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Smart Health AI Assistant
+              SmartHealth Assistant
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
               Get instant health insights using AI-powered symptom analysis and image recognition. 

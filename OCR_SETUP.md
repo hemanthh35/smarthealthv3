@@ -36,7 +36,7 @@ brew install tesseract poppler
 python api/ocr_analyzer.py
 ```
 
-### 4. Enable OCR in Health AI
+### 4. Enable OCR in SmartHealth
 
 Set environment variable in `.env.local`:
 ```env
