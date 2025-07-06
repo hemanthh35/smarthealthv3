@@ -3,18 +3,17 @@ graph TD
     A[User Opens Health AI App] --> B{Choose Feature}
     
     %% Main Navigation
-    B -->|Symptom Checker| C[Symptom Analysis Flow]
-    B -->|Image Analysis| D[Medical Image Analysis Flow]
-    B -->|Find Hospitals| E[Healthcare Facility Finder Flow]
-    B -->|Dashboard| F[Health Dashboard Flow]
+    B -->|Symptom Checker| C[Symptom Analysis]
+    B -->|Image Analysis| D[Medical Image Analysis]
+    B -->|Find Hospitals| E[Healthcare Facility Finder]
+    B -->|Dashboard| F[Health Dashboard]
     
     %% Symptom Analysis Flow
-    C --> C1[Enter Symptoms in Natural Language]
+    C --> C1[Enter Symptoms]
     C1 --> C2[AI Processes Symptoms]
-    C2 --> C3[Generate Health Analysis]
+    C2 --> C3[Generate Analysis]
     C3 --> C4[Provide Recommendations]
-    C4 --> C5[Display Confidence Score]
-    C5 --> C6[Save to Health Dashboard]
+    C4 --> C5[Save to Dashboard]
     
     %% Image Analysis Flow
     D --> D1[Upload Medical Image]
@@ -29,9 +28,8 @@ graph TD
     
     D6 --> D7[AI Processes Image]
     D7 --> D8[Generate Medical Analysis]
-    D8 --> D9[Provide Diagnosis & Recommendations]
-    D9 --> D10[Display Severity Level]
-    D10 --> D11[Save Results to Dashboard]
+    D8 --> D9[Provide Diagnosis]
+    D9 --> D10[Save Results]
     
     %% Healthcare Facility Finder Flow
     E --> E1[Get User Location]
@@ -42,79 +40,42 @@ graph TD
     
     E3 --> E5[Query OpenStreetMap API]
     E5 --> E6[Display Facilities on Map]
-    E6 --> E7[Show Distance & Contact Info]
-    E7 --> E8[Enable Navigation & Calling]
+    E6 --> E7[Show Contact Info]
     
     %% Health Dashboard Flow
-    F --> F1[Load User Health Data]
-    F1 --> F2[Display Health Statistics]
+    F --> F1[Load Health Data]
+    F1 --> F2[Display Statistics]
     F2 --> F3[Show Recent Analyses]
-    F3 --> F4[Display Health Insights]
-    F4 --> F5[Manage Health Reminders]
-    F5 --> F6[Track Health Trends]
+    F3 --> F4[Track Health Trends]
     
     %% Data Management
-    C6 --> G[Local Storage Management]
-    D11 --> G
-    G --> G1[Compress Data for Storage]
-    G1 --> G2[Limit to 50 Recent Items]
-    G2 --> G3[Remove Large Image URLs]
+    C5 --> G[Local Storage]
+    D10 --> G
+    G --> G1[Compress Data]
+    G1 --> G2[Limit Recent Items]
     
     %% API Integration
-    D6 --> H[Ollama API Integration]
-    H --> H1[Send Image to LLaVA Model]
-    H1 --> H2[Process Medical Analysis]
-    H2 --> H3[Return JSON Response]
+    D6 --> H[Ollama API]
+    H --> H1[Send to LLaVA Model]
+    H1 --> H2[Process Analysis]
+    H2 --> H3[Return Response]
     
     E5 --> I[OpenStreetMap API]
-    I --> I1[Query Healthcare Facilities]
+    I --> I1[Query Facilities]
     I1 --> I2[Calculate Distances]
-    I2 --> I3[Return Facility Data]
+    I2 --> I3[Return Data]
     
     %% Error Handling
     C2 --> J{Analysis Successful?}
-    J -->|No| J1[Display Error Message]
+    J -->|No| J1[Display Error]
     J -->|Yes| C3
     
     D7 --> K{Image Analysis Successful?}
-    K -->|No| K1[Show Ollama Error]
+    K -->|No| K1[Show Error]
     K -->|Yes| D8
     
-    E3 --> L{Location Services Available?}
-    L -->|No| L1[Show Manual Entry Option]
+    E3 --> L{Location Available?}
+    L -->|No| L1[Manual Entry]
     L -->|Yes| E5
     
-    %% UI Components
-    M[Navigation Bar] --> M1[Home]
-    M --> M2[Dashboard]
-    M --> M3[Image Analysis]
-    M --> M4[Find Hospitals]
-    M --> M5[Symptom Checker]
-    
-    %% Technology Stack
-    N[Frontend: Next.js 14] --> N1[React 18]
-    N --> N2[TypeScript]
-    N --> N3[Tailwind CSS]
-    
-    O[AI/ML: Ollama] --> O1[LLaVA Model]
-    O --> O2[Local Processing]
-    
-    P[Maps: Leaflet.js] --> P1[OpenStreetMap]
-    P --> P2[Interactive Maps]
-    
-    Q[Data: LocalStorage] --> Q1[Health Data]
-    Q --> Q2[Analysis History]
-    Q --> Q3[User Preferences]
-    
-    %% Styling
-    classDef userFlow fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef aiFlow fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef dataFlow fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef errorFlow fill:#ffebee,stroke:#c62828,stroke-width:2px
-    classDef techStack fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    
-    class A,B,C,D,E,F userFlow
-    class D6,D7,D8,D9,H,H1,H2,H3 aiFlow
-    class G,G1,G2,G3,Q,Q1,Q2,Q3 dataFlow
-    class J,J1,K,K1,L,L1 errorFlow
-    class N,N1,N2,N3,O,O1,O2,P,P1,P2,Q techStack 
+ 
